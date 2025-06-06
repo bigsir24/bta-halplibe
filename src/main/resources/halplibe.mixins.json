@@ -10,7 +10,9 @@
     "accessors.BlocksAccessor",
     "accessors.LanguageAccessor",
     "accessors.WeightedRandomBagAccessor",
-    "accessors.WeightedRandomBagEntryAccessor"
+    "accessors.WeightedRandomBagEntryAccessor",
+    "namespace.BlockMixin",
+    "namespace.ItemMixin"
   ],
   "client": [
     "AtlasStitcherMixin",
@@ -26,10 +28,10 @@
     "models.TileEntityRendererDispatcherMixin"
   ],
   "server": [
-    "accessors.PacketHandlerServerAccessor",
     "MinecraftServerMixin",
     "PacketHandlerLoginMixin",
-    "PacketHandlerServerMixin"
+    "PacketHandlerServerMixin",
+    "accessors.PacketHandlerServerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
