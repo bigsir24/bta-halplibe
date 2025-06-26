@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import turniplabs.halplibe.helper.ModelHelper;
+import turniplabs.halplibe.helper.model.BlockModelBuilder;
 import turniplabs.halplibe.util.ModelEntrypoint;
 
 @Mixin(value = BlockModelDispatcher.class, remap = false)

@@ -1,18 +1,18 @@
-package turniplabs.halplibe.helper.model.extras;
+package turniplabs.halplibe.helper.model.models;
 
 import net.minecraft.client.render.block.model.BlockModelStandard;
-import net.minecraft.client.render.item.model.ItemModelStandard;
 import net.minecraft.client.render.texture.stitcher.IconCoordinate;
 import net.minecraft.client.render.texture.stitcher.TextureRegistry;
-import net.minecraft.core.item.Item;
+import net.minecraft.core.block.Block;
+import net.minecraft.core.block.BlockLogic;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemModelExtended extends ItemModelStandard implements IconStorage {
+public class BlockModelExtended<T extends BlockLogic> extends BlockModelStandard<T> implements IconStorage {
 	protected final List<IconCoordinate> icons = new ArrayList<>();
-	public ItemModelExtended(Item item) {
-		super(item, null);
+	public BlockModelExtended(Block<T> block) {
+		super(block);
 	}
 
 	protected IconCoordinate getIcon(int index) {
@@ -31,9 +31,8 @@ public class ItemModelExtended extends ItemModelStandard implements IconStorage 
 		this.icons.add(coordinate);
 	}
 
-
 	@Override
 	public void addIconInternal(String modId, String namespaceValue, String texKey) {
-		addIcon(modId + ":item/" + texKey);
+		addIcon(modId + ":block/" + texKey);
 	}
 }

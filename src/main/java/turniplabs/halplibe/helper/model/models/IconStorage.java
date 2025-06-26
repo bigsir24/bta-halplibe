@@ -1,4 +1,4 @@
-package turniplabs.halplibe.helper.model.extras;
+package turniplabs.halplibe.helper.model.models;
 
 public interface IconStorage {
 

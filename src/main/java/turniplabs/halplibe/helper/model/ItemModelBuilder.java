@@ -15,9 +15,20 @@ public final class ItemModelBuilder extends ModelBuilder<Item, ItemModel, ItemMo
     private boolean rotateWhenRendering = false;
     private boolean pointInFrontOfPlayer = false;
     private @NotNull String stringFormat = "%s";
-	//private final List<String> extendedMap = new ArrayList<>();
+
     public ItemModelBuilder(@NotNull String modID, @NotNull ItemModelDispatcher dispatcher) {
         super(modID, dispatcher);
+    }
+
+    @Override
+    public ItemModelBuilder copy() {
+        ItemModelBuilder newBuilder = copyToInternal(new ItemModelBuilder(modID, (ItemModelDispatcher) dispatcher));
+        newBuilder.full3D = full3D;
+        newBuilder.fullbright = fullbright;
+        newBuilder.rotateWhenRendering = rotateWhenRendering;
+        newBuilder.pointInFrontOfPlayer = pointInFrontOfPlayer;
+        newBuilder.stringFormat = stringFormat;
+        return newBuilder;
     }
 
     @SuppressWarnings("unused")
@@ -25,13 +36,6 @@ public final class ItemModelBuilder extends ModelBuilder<Item, ItemModel, ItemMo
         this.stringFormat = stringFormat;
         return this;
     }
-
-    /*
-	@SuppressWarnings("unused")
-	public ItemModelBuilder extMapping(@NotNull String stringFormat) {
-		this.extendedMap.add(stringFormat);
-		return this;
-	}*/
 
     @SuppressWarnings("unused")
     public ItemModelBuilder withFull3D() {
@@ -59,16 +63,6 @@ public final class ItemModelBuilder extends ModelBuilder<Item, ItemModel, ItemMo
 
     @Override
     protected void onBuild(@NotNull Item block, @NotNull ItemModel model, @NotNull String namespaceValue) {
-
-		/*if (model instanceof ItemModelExtended)  {
-			for (String format : this.extendedMap) {
-				String formatted = modID + ":item/" + String.format(format, namespaceValue);
-				((ItemModelExtended)model).addIcon(formatted); //TODO extract to ModelBuilder
-			}
-		}else if (!this.extendedMap.isEmpty()) {
-            HalpLibe.LOGGER.warn("Model builder of '{}' is using extended mappings, but Model does not extend ItemModelExtended!", block.namespaceID);
-        }*/
-
         if (model instanceof ItemModelStandard) {//TODO log non-standard warning
 			String formatted = modID + ":item/" + String.format(this.stringFormat, namespaceValue);
             ItemModelStandard modelStd = ((ItemModelStandard) model);

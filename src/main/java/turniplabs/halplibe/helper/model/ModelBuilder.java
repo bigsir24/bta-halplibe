@@ -5,16 +5,17 @@ import net.minecraft.client.render.item.model.ItemModelDispatcher;
 import net.minecraft.client.util.dispatch.Dispatcher;
 import org.jetbrains.annotations.NotNull;
 import turniplabs.halplibe.HalpLibe;
-import turniplabs.halplibe.helper.model.extras.IconStorage;
+import turniplabs.halplibe.helper.model.models.IconStorage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class ModelBuilder<O, M, B> {
     protected final String modID;
-    private final Dispatcher<O, M> dispatcher;
+    protected final Dispatcher<O, M> dispatcher;
     protected Function<O, M> modelSupplier;
 	protected Consumer<M> modelConsumer;
 
@@ -27,16 +28,27 @@ public abstract class ModelBuilder<O, M, B> {
         this.modID = modID;
     }
 
+    public abstract B copy();
+
+    protected B copyToInternal(ModelBuilder<O, M, B> newBuilder) {
+        newBuilder.modelSupplier = modelSupplier;
+        newBuilder.modelConsumer = modelConsumer;
+        newBuilder.extendedMap.addAll(extendedMap);
+        newBuilder.counterStringList.addAll(counterStringList);
+        newBuilder.countList.addAll(countList);
+        return (B) newBuilder;
+    }
+
     /**Method used to get a BlockModelBuilder, equivalent to using the constructor
      * @return new BlockModelBuilder */
-    public static BlockModelBuilder block(@NotNull String modID, @NotNull BlockModelDispatcher dispatcher) {
-        return new BlockModelBuilder(modID, dispatcher);
+    public static BlockModelBuilder block(@NotNull String modID) {
+        return new BlockModelBuilder(modID, BlockModelDispatcher.getInstance());
     }
 
     /**Method used to get a ItemModelBuilder, equivalent to using the constructor
      * @return new BlockModelBuilder */
-    public static ItemModelBuilder item(@NotNull String modID, @NotNull ItemModelDispatcher dispatcher) {
-        return new ItemModelBuilder(modID, dispatcher);
+    public static ItemModelBuilder item(@NotNull String modID) {
+        return new ItemModelBuilder(modID, ItemModelDispatcher.getInstance());
     }
 
     /**Method used to get a BlockModelBuilder, equivalent to using the constructor
@@ -83,13 +95,12 @@ public abstract class ModelBuilder<O, M, B> {
             String formatted = String.format(counterStringList.get(i), namespaceValue, index);
             extModel.addIconInternal(modID, namespaceValue, formatted);
         }
-
-        countList.clear();
     }
 
-    /**<b><i>!!! To be used with Models implementing IconStorage only !!!</b></i><br><br>
-     * Adds a formatable string to the texture look-up list<br>
+    /**<p><b><i>!!! To be used with Models implementing IconStorage only !!!</b></i><br></p>
+     * <p>Adds a formattable string to the texture look-up list</p>
      * Example: %s_my_texture_key
+     *
      * @param stringFormat the string to format
      * @return this*/
     @SuppressWarnings({"unchecked", "unused"})
@@ -98,9 +109,10 @@ public abstract class ModelBuilder<O, M, B> {
         return (B) this;
     }
 
-    /**<b><i>!!! To be used with Models implementing IconStorage only !!!</b></i><br><br>
-     * Adds a formatable string to the counting texture look-up list<br>
+    /**<p><b><i>!!! To be used with Models implementing IconStorage only !!!</b></i><br></p>
+     * <p>Adds a formattable string to the counting texture look-up list.</p>
      * Example: %s_my_texture_key_%d
+     *
      * @param stringFormat the string to format
      * @return this*/
     @SuppressWarnings({"unchecked", "unused"})
@@ -114,7 +126,13 @@ public abstract class ModelBuilder<O, M, B> {
         return (B) this;
     }
 
-    /**Count is cleared after every {@link ModelBuilder#build(Object)} call.
+    /**Count of textures to be indexed.
+     *
+     * <p>If there are more countable texture keys than assigned counts, strings that have
+     * no count mapping will use the last count in the list.</p>
+     *
+     * <p>Clear the count list by calling {@link ModelBuilder#clearCount()}.</p>
+     *
      * @param count the number of iterations
      * @return this */
     @SuppressWarnings({"unchecked", "unused"})
@@ -123,7 +141,7 @@ public abstract class ModelBuilder<O, M, B> {
         return (B) this;
     }
 
-    /** See {@link ModelBuilder#count(int)} */
+    /** @see ModelBuilder#count(int)  */
     @SuppressWarnings({"unchecked", "unused"})
     public B count(int count1, int count2) {
         this.countList.add(count1);
@@ -131,7 +149,7 @@ public abstract class ModelBuilder<O, M, B> {
         return (B) this;
     }
 
-    /** See {@link ModelBuilder#count(int)} */
+    /** @see ModelBuilder#count(int) */
     @SuppressWarnings({"unchecked", "unused"})
     public B count(int @NotNull ... count) {
         for (int i = 0; i < count.length; i++) {
@@ -140,7 +158,15 @@ public abstract class ModelBuilder<O, M, B> {
         return (B) this;
     }
 
-    /**Creates the model and assigns it to the target.
+    /**<p>Clears the count list. This does not affect the assigned countable texture keys.</p>
+     * @return this */
+    @SuppressWarnings({"unchecked", "unused"})
+    public B clearCount() {
+        countList.clear();
+        return (B) this;
+    }
+
+    /**<p>Creates the model and assigns it to the target.</p>
      * @param target the owner of the model
      * @param key the key to use when replacing %s format specifiers (by default the namespace id of the target is used) */
     @SuppressWarnings({"unchecked", "UnusedReturnValue"})
