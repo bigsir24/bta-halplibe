@@ -4,12 +4,14 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.client.render.texture.stitcher.AtlasStitcher;
 import net.minecraft.client.render.texture.stitcher.TextureRegistry;
+import org.jetbrains.annotations.Nullable;
 import turniplabs.halplibe.HalpLibe;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,16 +22,21 @@ public class TextureHelper {
     public static void initializeAllFiles(String modId, AtlasStitcher atlas, int depth) {
         Optional<ModContainer> modContainer = FabricLoader.getInstance().getModContainer(modId);
         if(!modContainer.isPresent()) {
-            HalpLibe.LOGGER.error("Failed to find mod {} when loading textures!", modId);
+            HalpLibe.LOGGER.error("Failed to find mod {} when loading textures.", modId);
             return;
         }
 
-        String path = String.format("%s/%s/%s", "assets", modId, atlas.directoryPath);
-        String atlasKey = TextureRegistry.stitcherMapReverse.get(atlas);
+        String path = String.format("%s/%s/%s", "assets", modId, atlas.idDirMap);
+        final @Nullable String atlasKey = getKey(atlas);
+        if (atlasKey == null) {
+            HalpLibe.LOGGER.error("Failed to find atlas key. [{}]", modId);
+            return;
+        }
+
         Optional<Path> optionalPath = modContainer.get().findPath(path);
 
         if (!optionalPath.isPresent()) {
-            HalpLibe.LOGGER.error("Failed to find path to {}! [{}]", path, modId);
+            HalpLibe.LOGGER.error("Failed to find path to {}. [{}]", path, modId);
             return;
         }
         Path p = optionalPath.get();
@@ -46,9 +53,17 @@ public class TextureHelper {
             }
 
         } catch (IOException e) {
-            HalpLibe.LOGGER.error("Failed to initialize textures!", e);
+            HalpLibe.LOGGER.error("Failed to initialize textures.", e);
         }
     }
+
+    protected static @Nullable String getKey(AtlasStitcher atlas) {
+        for (Map.Entry<String, AtlasStitcher> entry : TextureRegistry.stitcherMap.entrySet()) {
+            if (entry.getValue() == atlas) return entry.getKey();
+        }
+        return null;
+    }
+
 
     @SuppressWarnings("unused")
     public static void initializeAllFiles(String modId, AtlasStitcher atlas) {

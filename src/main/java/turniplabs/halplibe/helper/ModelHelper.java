@@ -2,7 +2,7 @@ package turniplabs.halplibe.helper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.EntityRenderDispatcher;
+import net.minecraft.client.render.EntityRendererDispatcher;
 import net.minecraft.client.render.TileEntityRenderDispatcher;
 import net.minecraft.client.render.block.color.BlockColor;
 import net.minecraft.client.render.block.color.BlockColorDispatcher;
@@ -30,7 +30,7 @@ public class ModelHelper {
 
     public static BlockModelDispatcher blockModelDispatcher;
     public static ItemModelDispatcher itemModelDispatcher;
-    public static EntityRenderDispatcher entityRenderDispatcher;
+    public static EntityRendererDispatcher entityRenderDispatcher;
     public static TileEntityRenderDispatcher tileEntityRenderDispatcher;
     public static BlockColorDispatcher blockColorDispatcher;
 

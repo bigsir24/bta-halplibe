@@ -11,13 +11,18 @@ import turniplabs.halplibe.helper.RecipeBuilder;
 import java.util.Objects;
 
 public class RecipeBuilderFurnace extends RecipeBuilderBase{
-    protected RecipeSymbol input;
+    protected RecipeSymbol[] input;
     /**
      * Used for creating new furnace recipes.
      * @param modID Namespace to create recipe under
      */
     public RecipeBuilderFurnace(String modID) {
+        this(modID, 1);
+    }
+
+    protected RecipeBuilderFurnace(String modID, int inputCount) {
         super(modID);
+        input = new RecipeSymbol[inputCount];
     }
 
     /**
@@ -68,9 +73,27 @@ public class RecipeBuilderFurnace extends RecipeBuilderBase{
      */
     @SuppressWarnings({"unused"})
     public RecipeBuilderFurnace setInput(RecipeSymbol input){
+        return setInput(0, input);
+    }
+
+    /**
+     * Furnace recipes can only have one input
+     * @param input {@link RecipeSymbol} Input symbol
+     * @return Copy of {@link RecipeBuilderFurnace}
+     */
+    @SuppressWarnings({"unused"})
+    public RecipeBuilderFurnace setInput(int index, RecipeSymbol input){
+        checkIndex(index);
         RecipeBuilderFurnace builder = this.clone(this);
-        builder.input = Objects.requireNonNull(input, "Input symbol must not be null!");
+        builder.input[index] = Objects.requireNonNull(input, "Input symbol must not be null!");
         return builder;
+    }
+
+    protected void checkIndex(int index) {
+        if (index < 0 || index >= input.length) {
+            String formatted = String.format("Furnace Recipe input index should be within [%d, %d], but %d was provided.", 0, input.length - 1, index);
+            throw new RuntimeException(formatted);
+        }
     }
 
     @Override
@@ -78,6 +101,6 @@ public class RecipeBuilderFurnace extends RecipeBuilderBase{
     public void create(String recipeID, ItemStack outputStack) {
         Objects.requireNonNull(input, "Input symbol must not be null!");
         ((RecipeGroup<RecipeEntryFurnace>) RecipeBuilder.getRecipeGroup(modID, "furnace", new RecipeSymbol(Blocks.FURNACE_STONE_ACTIVE.getDefaultStack())))
-                .register(recipeID, new RecipeEntryFurnace(input, outputStack));
+                .register(recipeID, new RecipeEntryFurnace(input[0], outputStack));
     }
 }

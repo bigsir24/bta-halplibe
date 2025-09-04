@@ -52,11 +52,11 @@ public abstract class MinecraftMixin {
         ItemsAccessor.invokeInitStats();
     }
 
-    @Inject(method = "printWrongJavaVersionInfo", at = @At("HEAD"), cancellable = true)
+    /*@Inject(method = "startGame", at = @At("HEAD"), cancellable = true) // TODO I think this can be removed
     private void printWrongJavaVersionInfo(CallbackInfo ci) {
         if (Minecraft.getOs() == EnumOS.linux){
-            System.out.println("If the game crashes with a message similar to \n\"Inconsistency detected by ld.so: dl-lookup.c: 111: check_match: Assertion `version->filename == NULL || ! _dl_name_match_p (version->filename, map)' failed!\", \nEither use Java 8 or 17 from Eclipse Adoptium!");
+            System.out.println("If the game crashes with a message similar to \n\"Inconsistency detected by ld.so: dl-lookup.c: 111: check_match: Assertion `version->filename == NULL || ! _dl_name_match_p (version->filename, map)' failed!\", \nUse Java 17 from Eclipse Adoptium!");
         }
         ci.cancel();
-    }
+    }*/
 }

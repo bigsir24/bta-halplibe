@@ -1,7 +1,7 @@
 package turniplabs.halplibe.mixin.models;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.render.EntityRenderDispatcher;
+import net.minecraft.client.render.EntityRendererDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,17 +15,14 @@ import turniplabs.halplibe.util.ModelEntrypoint;
 
 import java.util.Map;
 
-@Mixin(value = EntityRenderDispatcher.class, remap = false)
+@Mixin(value = EntityRendererDispatcher.class, remap = false)
 public abstract class EntityRenderDispatcherMixin {
     @Shadow @Final private Map<Class<?>, EntityRenderer<?>> renderers;
 
-    @Unique
-    private final EntityRenderDispatcher thisAs = (EntityRenderDispatcher) (Object) this;
-
-    @Inject(method = "<init>()V", at = @At(value = "INVOKE", target = "Ljava/util/Map;values()Ljava/util/Collection;", shift = At.Shift.BEFORE))
+    @Inject(method = "reload", at = @At(value = "TAIL"))
     private void addQueuedModels(CallbackInfo ci){
         ModelHelper.entityRenderers = renderers;
-        ModelHelper.entityRenderDispatcher = thisAs;
-        FabricLoader.getInstance().getEntrypoints("initModels", ModelEntrypoint.class).forEach(e -> e.initEntityModels(thisAs));
+        ModelHelper.entityRenderDispatcher = EntityRendererDispatcher.class.cast(this);
+        FabricLoader.getInstance().getEntrypoints("initModels", ModelEntrypoint.class).forEach(e -> e.initEntityModels(ModelHelper.entityRenderDispatcher));
     }
 }

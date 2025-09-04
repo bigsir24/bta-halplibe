@@ -13,8 +13,9 @@ public class RecipeBuilderBlastFurnace extends RecipeBuilderFurnace{
      * @param modID Namespace to create recipe under
      */
     public RecipeBuilderBlastFurnace(String modID) {
-        super(modID);
+        super(modID, 2);
     }
+
     @Override
     @SuppressWarnings({"unchecked", "unused"})
     public void create(String recipeID, ItemStack outputStack) {

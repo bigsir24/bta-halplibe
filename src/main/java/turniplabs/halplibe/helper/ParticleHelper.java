@@ -1,8 +1,8 @@
 package turniplabs.halplibe.helper;
 
-import net.minecraft.client.entity.particle.ParticleDispatcher;
-import net.minecraft.client.entity.particle.ParticleFirefly;
-import net.minecraft.client.entity.particle.ParticleLambda;
+import net.minecraft.client.render.particle.ParticleDispatcher;
+import net.minecraft.client.render.particle.ParticleEntry;
+import net.minecraft.client.render.particle.ParticleFirefly;
 import net.minecraft.core.util.helper.MathHelper;
 import turniplabs.halplibe.HalpLibe;
 import turniplabs.halplibe.mixin.accessors.EntityFXAccessor;
@@ -12,7 +12,7 @@ public final class ParticleHelper {
 
 
     @SuppressWarnings("unused") // API function
-    public static void createParticle(String name, ParticleLambda lambda) {
+    public static void createParticle(String name, ParticleEntry lambda) {
         if (!HalpLibe.isClient) return;
         ParticleDispatcher.getInstance().addDispatch(name, lambda);
     }

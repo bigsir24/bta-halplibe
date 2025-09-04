@@ -3,15 +3,9 @@ package turniplabs.halplibe.helper;
 import net.minecraft.core.data.tag.Tag;
 import net.minecraft.core.item.Item;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public final class ItemBuilder implements Cloneable {
     private final String modId;
@@ -25,6 +19,7 @@ public final class ItemBuilder implements Cloneable {
     private Integer maxDamage = null;
     @Nullable
     private Supplier<Item> containerItemSupplier = null;
+    private boolean compactKeys = false;
     public ItemBuilder(String modId){
         this.modId = modId;
     }
@@ -111,20 +106,33 @@ public final class ItemBuilder implements Cloneable {
     }
 
     /**
+     * Allows {@link ItemBuilder#build(String, String, int, ItemSupplier)} to
+     * append {@code "MOD_ID:item/"} and {@code "MOD_ID."} to namespace ID and translation
+     * key respectively.
+     * @return Copy of {@link ItemBuilder}
+     */
+    @SuppressWarnings("unused")
+    public ItemBuilder compactKeys() {
+        ItemBuilder itemBuilder = this.clone();
+        this.compactKeys = true;
+        return itemBuilder;
+    }
+
+    @SuppressWarnings("unused")
+    public <T extends Item> T build(String translationKey, String namespaceID, int id, ItemSupplier<T> itemSupplier){
+        String prefix = modId + ":item/";
+        T item = itemSupplier.create(modId + "." + translationKey, prefix + namespaceID, id);
+
+        return build(item);
+    }
+
+    /**
      * Applies the builder configuration to the supplied item.
      * @param item Input item object
      * @return Returns the input item after builder settings are applied to it.
      */
     @SuppressWarnings("unused")
     public <T extends Item> T build(T item){
-        List<String> tokens;
-
-        if (overrideKey != null){
-            tokens = Arrays.stream(overrideKey.split("\\.")).collect(Collectors.toList());
-        } else {
-            tokens = Arrays.stream(item.getKey().split("\\.")).collect(Collectors.toList());
-        }
-
         if (tags != null) {
             item.withTags(tags);
         }
@@ -141,13 +149,11 @@ public final class ItemBuilder implements Cloneable {
             item.setMaxDamage(maxDamage);
         }
 
-        List<String> newTokens = new ArrayList<>();
-        newTokens.add(modId);
-        newTokens.addAll(tokens.subList(1, tokens.size()));
-
-        item.setKey(StringUtils.join(newTokens, "."));
-
         return item;
+    }
+
+    public interface ItemSupplier<T> {
+        T create(String translationKey, String namespaceID, int id);
     }
 
 }

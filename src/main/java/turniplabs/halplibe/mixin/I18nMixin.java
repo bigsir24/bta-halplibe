@@ -91,10 +91,10 @@ public abstract class I18nMixin {
     }
 
     @Inject(
-            method = "reload(Ljava/lang/String;Z)V",
+            method = "reload",
             at = @At("TAIL")
     )
-    public void addHalplibeModLangFiles(String languageCode, boolean save, CallbackInfo ci) {
+    public void addHalplibeModLangFiles(String languageCode, CallbackInfo ci) {
         Properties entries = ((LanguageAccessor) currentLanguage).getEntries();
         Language defaultLanguage = Language.Default.INSTANCE;
         Properties defaultEntries = ((LanguageAccessor) defaultLanguage).getEntries(); //if you see a ClassCastException warning here, it is wrong, nothing happens
