@@ -28,10 +28,10 @@
     "models.TileEntityRendererDispatcherMixin"
   ],
   "server": [
-    "accessors.PacketHandlerServerAccessor",
     "MinecraftServerMixin",
     "PacketHandlerLoginMixin",
-    "PacketHandlerServerMixin"
+    "PacketHandlerServerMixin",
+    "accessors.PacketHandlerServerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,62 +1,60 @@
 package turniplabs.halplibe.helper;
 
-import net.minecraft.core.data.tag.Tag;
 import net.minecraft.core.item.Item;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import turniplabs.halplibe.helper.builder.AbstractBuilder;
+import turniplabs.halplibe.helper.builder.Counter;
+import turniplabs.halplibe.helper.builder.ItemSupplier;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public final class ItemBuilder implements Cloneable {
-    private final String modId;
-    @Nullable
-    private String overrideKey = null;
-    @Nullable
-    private String textureKey = null;
-    @Nullable
-    private Tag<Item>[] tags = null;
-    private Integer stackSize = null;
-    private Integer maxDamage = null;
-    @Nullable
-    private Supplier<Item> containerItemSupplier = null;
+public final class ItemBuilder extends AbstractBuilder<Item, ItemSupplier, ItemBuilder> {
+    private static final String PREFIX = ":item/";
+    private @Nullable String overrideKey = null;
+    private @Nullable Integer stackSize = null;
+    private @Nullable Integer maxDamage = null;
+    private @Nullable Supplier<Item> containerItemSupplier = null; //Why is this a supplier?
+
+    @SuppressWarnings("unused")
     public ItemBuilder(String modId){
-        this.modId = modId;
+        super(PREFIX, Counter.Type.ITEM, modId);
     }
-    @Override
-    public ItemBuilder clone() {
-        try {
-            // none of the fields are mutated so this should be fine
-            return (ItemBuilder) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+
+    private ItemBuilder(ItemBuilder other){
+        super(other);
+        this.overrideKey = other.overrideKey;
+        this.stackSize = other.stackSize;
+        this.maxDamage = other.maxDamage;
+        this.containerItemSupplier = other.containerItemSupplier;
     }
 
     /**
-     * Sets the key to the built {@link Item}, for example if you set the key "gem.sapphire" the actual key ingame will be "item.<modid>.gem.sapphire"
+     * Sets the key to the built {@link Item}, for example if you set the key "gem.sapphire" the actual key ingame will be "item.mod_id.gem.sapphire"
      * @param key Override translation key for the {@link Item}
-     * @return @return Copy of {@link ItemBuilder}
+     * @return Copy of {@link ItemBuilder}
      */
+    @Deprecated
     @SuppressWarnings({"unused"})
     public ItemBuilder setKey(String key){
-        ItemBuilder builder = this.clone();
+        ItemBuilder builder = this.copy();
         builder.overrideKey = key;
         return builder;
     }
+
     /**
      * Sets stack size for the built {@link Item}, will override any class default stacksizes
      * @param stackSize Stack size of the {@link Item}
-     * @return @return Copy of {@link ItemBuilder}
+     * @return Copy of {@link ItemBuilder}
      */
     @SuppressWarnings({"unused"})
     public ItemBuilder setStackSize(int stackSize){
-        ItemBuilder builder = this.clone();
+        ItemBuilder builder = this.copy();
         builder.stackSize = stackSize;
         return builder;
     }
@@ -65,58 +63,61 @@ public final class ItemBuilder implements Cloneable {
      * Sets max durability for the built {@link Item}, will override any class default max damage values.
      * Probably only really affects tool classes.
      * @param maxDamage Max durability of the {@link Item}
-     * @return @return Copy of {@link ItemBuilder}
+     * @return Copy of {@link ItemBuilder}
      */
     @SuppressWarnings({"unused"})
     public ItemBuilder setMaxDamage(int maxDamage){
-        ItemBuilder builder = this.clone();
+        ItemBuilder builder = this.copy();
         builder.maxDamage = maxDamage;
         return builder;
     }
 
     /**
-     * Sets the container item for the built item. For example {@code Item.bucketMilk} uses the container item {@code Item.bucket}
+     * Sets the container item for the built item. For example {@code Items.BUCKET_MILK} uses the container item {@code Items.BUCKET}
      * @param itemSupplier Supplies the {@link Item} to set as the container item
-     * @return @return Copy of {@link ItemBuilder}
+     * @return Copy of {@link ItemBuilder}
      */
     @SuppressWarnings({"unused"})
-    public ItemBuilder setContainerItem(Supplier<Item> itemSupplier){
-        ItemBuilder builder = this.clone();
+    public ItemBuilder setContainerItem(@NotNull Supplier<Item> itemSupplier){
+        ItemBuilder builder = this.copy();
         builder.containerItemSupplier = itemSupplier;
         return builder;
     }
 
-    /**
-     * Overrides all previous tags with the ones provided
-     * @return @return Copy of {@link ItemBuilder}
-     */
-    @SafeVarargs
-    @SuppressWarnings({"unused"})
-    public final ItemBuilder setTags(Tag<Item>... tags) {
-        ItemBuilder itemBuilder = this.clone();
-        itemBuilder.tags = tags;
-        return itemBuilder;
+    @Override
+    @SuppressWarnings("unchecked")
+    protected  <T extends AbstractBuilder<Item, ItemSupplier, ItemBuilder>> T copy() {
+        return (T) new ItemBuilder(this);
     }
 
-    /**
-     * Adds provided tags to previously specified tags
-     * @return @return Copy of {@link ItemBuilder}
-     */
-    @SafeVarargs
-    @SuppressWarnings({"unused"})
-    public final ItemBuilder addTags(Tag<Item>... tags) {
-        ItemBuilder itemBuilder = this.clone();
-        itemBuilder.tags = ArrayUtils.addAll(this.tags, tags);
-        return itemBuilder;
+    @Override
+    @SuppressWarnings("unchecked")
+    protected <T extends Item> @NotNull T buildInternal(@NotNull ItemSupplier supplier) {
+        T item = (T) supplier.create(this.translationKey, this.namespaceID, this.id);
+
+        ifNotNull(stackSize, item::setMaxStackSize);
+        // Maybe actually do lazy init since it's already a supplier?
+        if(containerItemSupplier != null) item.setContainerItem(containerItemSupplier.get());
+        ifNotNull(maxDamage, item::setMaxDamage);
+        ifNotNull(tags, item::withTags);
+        // Not assigned in AbstractBuilder since it's not part of any interface
+        // And this is probably the least hacky way
+        ifNotNull(statParentSupplier, item::setStatParent);
+
+        return item;
     }
 
     /**
      * Applies the builder configuration to the supplied item.
      * @param item Input item object
      * @return Returns the input item after builder settings are applied to it.
+     * @deprecated Use {@link ItemBuilder#build(String, String, int, ItemSupplier)} or {@link ItemBuilder#build(String, int, ItemSupplier)}
      */
+    @Deprecated
     @SuppressWarnings("unused")
     public <T extends Item> T build(T item){
+        buildInternal((a,b,c) -> item);
+
         List<String> tokens;
 
         if (overrideKey != null){
@@ -125,24 +126,8 @@ public final class ItemBuilder implements Cloneable {
             tokens = Arrays.stream(item.getKey().split("\\.")).collect(Collectors.toList());
         }
 
-        if (tags != null) {
-            item.withTags(tags);
-        }
-
-        if (stackSize != null){
-            item.setMaxStackSize(stackSize);
-        }
-
-        if (containerItemSupplier != null){
-            item.setContainerItem(containerItemSupplier.get());
-        }
-
-        if (maxDamage != null){
-            item.setMaxDamage(maxDamage);
-        }
-
         List<String> newTokens = new ArrayList<>();
-        newTokens.add(modId);
+        newTokens.add(modID);
         newTokens.addAll(tokens.subList(1, tokens.size()));
 
         item.setKey(StringUtils.join(newTokens, "."));
