@@ -1,8 +1,12 @@
 @file:Suppress("UnstableApiUsage", "PropertyName")
 
 import org.apache.tools.ant.taskdefs.condition.Os
+import java.io.FileNotFoundException
+import java.lang.RuntimeException
+import java.net.URL
 
 plugins {
+	id("maven-publish")
 	id("fabric-loom") version "1.10.0-bta"
 	id("java")
 }
@@ -58,6 +62,10 @@ repositories {
 		name = "SignalumMavenReleases"
 		url = uri("https://maven.thesignalumproject.net/releases")
 	}
+	maven {
+		name = "SignalumMavenNightly"
+		url = uri("https://maven.thesignalumproject.net/nightly")
+	}
 	ivy {
 		url = uri("https://github.com/Better-than-Adventure")
 		patternLayout {
@@ -94,8 +102,7 @@ dependencies {
 
 	modRuntimeOnly("objects:client:43db9b498cb67058d2e12d394e6507722e71bb45") // https://piston-data.mojang.com/v1/objects/43db9b498cb67058d2e12d394e6507722e71bb45/client.jar
 	modImplementation("net.fabricmc:fabric-loader:$loader_version")
-
-	//modImplementation("turniplabs:modmenu-bta:$mod_menu_version")
+	modImplementation("turniplabs:modmenu-bta:$mod_menu_version")
 
 	implementation("org.slf4j:slf4j-api:1.8.0-beta4")
 	implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.16.0")
@@ -155,3 +162,50 @@ tasks.processResources {
 		expand("version" to version)
 	}
 }
+
+/////////////////// Signalum publishing ///////////////////
+
+val publishGroup = mod_group
+val publishName = mod_name
+val publishVersion = mod_version
+
+val signalumName = "signalumMavenNightly"
+val signalumNamespace = "nightly"
+
+fun checkSignalumReleaseStatus(groupId: String, modName: String, version: String) {
+	val url: URL = URL("https://maven.thesignalumproject.net/$signalumNamespace/$groupId/$modName/maven-metadata.xml")
+	val xmlString = try {
+		url.readText(Charsets.UTF_8)
+	} catch (e: FileNotFoundException) {
+		""
+	}
+
+	logger.info("metadata url: {}", url)
+	//This is probably awful, but I can't for the life of me find a proper xml parser
+	if (xmlString.contains(version)) throw RuntimeException("Version '$publishVersion' already published.\nURL: $url")
+}
+
+val versionCheckTask: Task = task("checkSignalum").doFirst {
+	checkSignalumReleaseStatus(publishGroup, publishName, publishVersion)
+}
+
+val publishTask = tasks.publish.get()
+publishTask.mustRunAfter(versionCheckTask)
+
+publishing {
+	repositories.maven {
+		name = signalumName
+		url = uri("https://maven.thesignalumproject.net/$signalumNamespace")
+		credentials(PasswordCredentials::class)
+		authentication.create<BasicAuthentication>("basic")
+	}
+
+	publications.create<MavenPublication>("maven") {
+		groupId = publishGroup
+		artifactId = publishName
+		version = publishVersion
+		from(components.getByName("java"))
+	}
+}
+
+/////////////////// Signalum publishing ///////////////////
