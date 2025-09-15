@@ -116,7 +116,13 @@ public abstract class AbstractBuilder<A extends ITaggable<A>, I, C> {
         if (!format.contains("%s")) throw new IllegalArgumentException(String.format("%s must contain at least one '%s' format specifier.", name, "%s"));
     }
 
-
+    /**
+     * Sets the formatter string of the translation key.
+     * Must contain one or more '%s' format specifiers, which will be
+     * replaced by the translation key(s) provided by {@link #key(String...)}.
+     * @param keyFormat the formatter string
+     * @return a copy of this builder
+     */
     @SuppressWarnings({"unused", "unchecked"})
     public C setKeyFormat(@NotNull String keyFormat) {
         validateFormat(keyFormat, "Translation key format");
@@ -125,6 +131,15 @@ public abstract class AbstractBuilder<A extends ITaggable<A>, I, C> {
         return (C) builder;
     }
 
+    /**
+     * Sets the translation key(s).
+     * This method should not be used in conjunction with {@link #mergedKey(String...)}.
+     * The translation key should be in the format '{@code my.example.key}'. If multiple key
+     * parameters were provided they will be consumed by the formatter string set by
+     * {@link #setKeyFormat(String)}, or '{@code %s}' if none were set.
+     * @param key the translation key(s)
+     * @return a copy of this builder
+     */
     @SuppressWarnings({"unused", "unchecked"})
     public C key(@NotNull String... key) {
         AbstractBuilder<A, I, C> builder = this.copy();
@@ -132,6 +147,13 @@ public abstract class AbstractBuilder<A extends ITaggable<A>, I, C> {
         return (C) builder;
     }
 
+    /**
+     * Sets the formatter string of the namespace id.
+     * Must contain one or more '%s' format specifiers, which will be
+     * replaced by the namespace id(s) provided by {@link #name(String...)}.
+     * @param IDFormat the formatter string
+     * @return a copy of this builder
+     */
     @SuppressWarnings({"unused", "unchecked"})
     public C setIDFormat(@NotNull String IDFormat) {
         validateFormat(IDFormat, "Namespace ID format");
@@ -140,6 +162,15 @@ public abstract class AbstractBuilder<A extends ITaggable<A>, I, C> {
         return (C) builder;
     }
 
+    /**
+     * Sets the namespace id(s).
+     * This method should not be used in conjunction with {@link #mergedKey(String...)}.
+     * The namespace id should be in the format '{@code my_example_id}'. If multiple name
+     * parameters were provided they will be consumed by the formatter string set by
+     * {@link #setIDFormat(String)}, or '{@code %s}' if none were set.
+     * @param name the namespace id(s)
+     * @return a copy of this builder
+     */
     @SuppressWarnings({"unused", "unchecked"})
     public C name(@NotNull String... name) {
         AbstractBuilder<A, I, C> builder = this.copy();
@@ -147,6 +178,15 @@ public abstract class AbstractBuilder<A extends ITaggable<A>, I, C> {
         return (C) builder;
     }
 
+    /**
+     * Sets the merged key(s).
+     * This method replaces both {@link #name(String...)} and {@link #key(String...)} and should not
+     * be used in conjunction with either of them.
+     * The merged key should be in the format '{@code my_example_key}', which the builder will
+     * turn into '{@code my.example.key}' for the translation key.
+     * @param mergedKey the merged key(s)
+     * @return a copy of this builder
+     */
     @SuppressWarnings({"unused", "unchecked"})
     public C mergedKey(@NotNull String... mergedKey) {
         AbstractBuilder<A, I, C> builder = this.copy();
@@ -155,6 +195,11 @@ public abstract class AbstractBuilder<A extends ITaggable<A>, I, C> {
         return (C) builder;
     }
 
+    /**
+     * Sets the numeric id of the item/block. IDs must be within [0, 32767].
+     * @param id the numeric id of the block/item
+     * @return a copy of this builder
+     */
     @SuppressWarnings({"unused", "unchecked"})
     public C id(int id) {
         if (id < 0 || id > Short.MAX_VALUE) throw new IllegalArgumentException("Numeric ID must be within [0, 32767]");
@@ -187,6 +232,13 @@ public abstract class AbstractBuilder<A extends ITaggable<A>, I, C> {
         return (C) builder;
     }
 
+    /**
+     * Sets the counter to use for assigning numeric ids. Builders that have
+     * counters assigned to them will use the id provided by the counter
+     * over ones assigned by {@link #id(int)}.
+     * @param counter the counter to use, either {@link Counter#block()} or {@link Counter#item()}
+     * @return a copy of this builder
+     */
     @SuppressWarnings({"unused", "unchecked"})
     public final C autoID(Counter counter) {
         counter.checkType(counterType);

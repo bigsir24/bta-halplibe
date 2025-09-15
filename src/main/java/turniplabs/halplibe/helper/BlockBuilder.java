@@ -11,7 +11,6 @@ import net.minecraft.core.block.tag.BlockTags;
 import net.minecraft.core.item.Item;
 import net.minecraft.core.item.block.ItemBlock;
 import net.minecraft.core.sound.BlockSound;
-import net.minecraft.core.sound.BlockSounds;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import turniplabs.halplibe.helper.builder.AbstractBuilder;
@@ -35,17 +34,17 @@ public final class BlockBuilder extends AbstractBuilder<Block<?>, BlockLogicSupp
     private @Nullable Float blastResistance = null;
     private @Nullable Integer lightEmission = null;
     private @Nullable Integer lightOpacity = null;
-    private @Nullable Float slipperiness = 0.6F;
+    private @Nullable Float slipperiness = null;
     private @Nullable Boolean immovable = null;
     private @Nullable Boolean useInternalLight = null;
     private @Nullable Boolean visualUpdateOnMetadata = null;
     private @Nullable Boolean tickOnLoad = null;
     private @Nullable Boolean infiniburn = null;
     private int @Nullable [] flammability = null;
-    private @NotNull BlockSound blockSound = BlockSounds.DEFAULT;
+    private @Nullable BlockSound blockSound = null;
     private @Nullable BlockLambda<ItemBlock<?>> customBlockItem = null;
     private @Nullable Supplier<TileEntity> entitySupplier = null;
-    private @NotNull Material material = Material.stone;
+    private @Nullable Material material = Material.stone;
     private @Nullable MaterialColor colorMaterial = null;
     private @Nullable Float particleGravity = null;
     private @Nullable Boolean trackStats = null;
@@ -327,20 +326,24 @@ public final class BlockBuilder extends AbstractBuilder<Block<?>, BlockLogicSupp
         Objects.requireNonNull(this.translationKey, "Translation key was null.");
         Objects.requireNonNull(this.namespaceID, "NamespaceID was null.");
 
+        // Material is not null, the player can just choose to ignore it when providing the supplier
+        // Most other properties are null by default so they won't override fields initialized in custom BlockLogic constructors
         T block = (T) Blocks.register(this.translationKey, this.namespaceID, this.id, (b) -> supplier.create(b, material));
 
         ifNotNull(hardness, block::withHardness);
         ifNotNull(blastResistance, block::withBlastResistance);
         ifNotNull(tickOnLoad, block::setTicking);
-        block.withSound(blockSound);
-        block.withOverrideColor(colorMaterial);
+        ifNotNull(blockSound, block::withSound);
+        ifNotNull(colorMaterial, block::withOverrideColor);
 
         if (slipperiness != null) block.friction = slipperiness;
         if (particleGravity != null) block.blockParticleGravity = particleGravity;
+        if (trackStats != null) block.enableStats = trackStats;
+
         // Not assigned in AbstractBuilder since it's not part of any interface
         // And this is probably the least hacky way
         ifNotNull(statParentSupplier, block::setStatParent);
-        if (trackStats != null) block.enableStats = trackStats;
+
 
         ifNotNull(lightOpacity, block::withLightBlock);
         ifNotNull(useInternalLight, block::withLitInteriorSurface);
